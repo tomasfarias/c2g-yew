@@ -1,0 +1,16 @@
+[package]
+name = "yew-app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+base64 = ">=0.21"
+c2g = { version = ">=0.8", git = "https://github.com/tomasfarias/c2g.git", features = ["default"] }
+yew = { version = ">=0.20", features = ["csr"] }
+
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  "HtmlTextAreaElement",
+]
