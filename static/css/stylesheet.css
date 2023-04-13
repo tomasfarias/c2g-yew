@@ -1,0 +1,117 @@
+:root {
+    --primary-bg-color: #121212;
+    --secondary-bg-color: #202020;
+    --text-color: #eceff4;
+    --border-color: #d8dee9;
+    --primary-accent-color: #88c0d0;
+    --secondary-accent-color: #8fbcbb;
+}
+
+header h1 {
+    text-align: center;
+}
+
+body {
+    background: var(--primary-bg-color);
+    color: var(--text-color);
+    font-weight: 400;
+    line-height: 1.5;
+    font-size: 16px;
+}
+
+input, label, textarea, select {
+    display: block;
+}
+
+input, textarea, select {
+    font: 1rem sans-serif;
+    box-sizing: border-box;
+    border: 1px solid var(--border-color);
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--secondary-accent-color);
+}
+
+input {
+    border-radius: 0.5rem;
+}
+
+input[type="file"] {
+    border: 2px dashed var(--border-color);
+    padding: 1rem;
+}
+
+.color-pickers label, .color-pickers input {
+    display: inline-block;
+}
+
+.color-pickers input {
+    margin-left: 1rem;
+}
+
+textarea {
+    height: 20rem;
+    width: 100%;
+}
+
+form {
+    border: 2px;
+    border-radius: 0.5em;
+    width: 40%;
+    margin: 0 auto;
+}
+
+fieldset {
+    background-color: var(--secondary-bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 1rem;
+}
+
+legend {
+    border-radius: 1rem;
+    padding: 1rem;
+    font-size: 2rem;
+}
+
+.input-grid {
+    display: grid;
+    grid-template-areas:
+        'input-textarea-pgn input-textarea-pgn input-file-pgn'
+        'input-textarea-pgn input-textarea-pgn input-url-pgn';
+    gap: 2rem;
+    padding: 1rem 1rem;
+}
+
+#input-textarea-pgn {
+    grid-area: input-textarea-pgn;
+}
+
+#input-file-pgn {
+    grid-area: input-file-pgn;
+}
+
+#input-url-pgn {
+    grid-area: input-url-pgn;
+}
+
+.colors-grid {
+    display: grid;
+    grid-template-areas:
+        'color-pickers colors-or theme-picker';
+    gap: 2rem;
+    padding: 1rem 1rem;
+}
+
+#colors-or {
+    grid-area: colors-or;
+    font-size: 24px;
+}
+
+#color-pickers {
+    grid-area: color-pickers;
+}
+
+#theme-picker {
+    grid-area: theme-picker;
+}
