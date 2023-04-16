@@ -130,24 +130,11 @@ fn pgn_input(props: &PgnInputProps) -> Html {
                 spawn_local(async move {
                     let result = reader.await.unwrap();
                     debug!(&result);
+
                     textarea.set_value(&result);
                     chess_pgn_setter.set(result);
-                    //ebug!("BALLS: {}", &(*chess_pgn));
                 });
-                debug!("BALLS: {}", &(*chess_pgn));
             }
-
-            // let result = spawn_local(async move {
-            //     if let Some(f) = web_file {
-            //         let file = gloo_file::File::from(f);
-            //         let file_contents = read_as_text(&file);
-            //         let result = file_contents.await;
-
-            //         debug!(&result);
-            //     } else {
-            //         pgn_error.set("Failed to upload PGN file. Please try again.".to_string());
-            //     }
-            // });
         })
     };
 
@@ -247,7 +234,7 @@ fn app() -> Html {
 
             <main>
 
-            <PgnInput { chess_pgn } />
+            <PgnInput chess_pgn={ chess_pgn.clone() } />
 
             <form id="config-form" class="config-form">
                 <fieldset>
@@ -278,8 +265,9 @@ fn app() -> Html {
                 </div>
                 </fieldset>
             </form>
-
-            <button id="generate-gif-button" value="Generate GIF" onclick={ generate_gif_onclick }> { "Generate GIF" } </button>
+            if !chess_pgn.is_empty() {
+                <button id="generate-gif-button" value="Generate GIF" onclick={ generate_gif_onclick }> { "Generate GIF" } </button>
+            }
         </main>
         </>
     }
