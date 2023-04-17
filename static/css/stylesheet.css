@@ -19,6 +19,61 @@ body {
     font-size: 16px;
 }
 
+.output {
+    display: flex;
+    justify-content: center;
+}
+
+#generate-gif-button {
+    align-items: center;
+    background-color: var(--secondary-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: .25rem;
+    box-shadow: var(--border-color) 0 1px 3px 0;
+    box-sizing: border-box;
+    color: var(--text-color);
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 16px;
+    font-weight: 600;
+    justify-content: center;
+    line-height: 1.25;
+    margin-top: 2rem;
+    min-height: 3rem;
+    padding: calc(.875rem - 1px) calc(1.5rem - 1px);
+    position: relative;
+    text-decoration: none;
+    transition: all 250ms;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    vertical-align: baseline;
+    width: auto;
+}
+
+#generate-gif-button:hover,
+#generate-gif-button:focus {
+    border-color: var(--border-color);
+    box-shadow:var(--border-color) 0 4px 12px;
+    color: var(--text-color);
+}
+
+#generate-gif-button:hover {
+    transform: translateY(-1px);
+}
+
+#generate-gif-button:disabled {
+    cursor: not-allowed;
+}
+
+#generate-gif-button:active {
+    background-color: var(--primary-bg-color);
+    border-color: var(--border-color);
+    box-shadow: var(--border-color) 0 2px 4px;
+    color: var(--border-color);
+    transform: translateY(0);
+}
+
 input, label, textarea, select {
     display: block;
 }

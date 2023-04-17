@@ -88,7 +88,6 @@ pub struct PgnInputProps {
 
 #[function_component(PgnInput)]
 fn pgn_input(props: &PgnInputProps) -> Html {
-    let textarea_value = use_state(|| String::new());
     let pgn_error = use_state_eq(|| String::new());
     let textarea_ref = use_node_ref();
 
@@ -271,9 +270,13 @@ fn app() -> Html {
             <PgnInput chess_pgn={ chess_pgn.clone() } />
             <ConfigForm dark_color={ dark_color.clone() } light_color={ light_color.clone() } />
 
-            if !chess_pgn.is_empty() {
-                <button id="generate-gif-button" value="Generate GIF" onclick={ generate_gif_onclick }> { "Generate GIF" } </button>
-            }
+            <div id="output" class="output">
+                if !chess_pgn.is_empty() {
+                    <button id="generate-gif-button" value="Generate GIF!" onclick={ generate_gif_onclick }> { "Generate GIF!" } </button>
+                } else {
+                    <button disabled=true id="generate-gif-button" value="Input PGN to Generate GIF" onclick={ generate_gif_onclick }> { "Input PGN to Generate GIF" } </button>
+                }
+            </div>
         </main>
         </>
     }
