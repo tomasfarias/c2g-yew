@@ -5,7 +5,6 @@ use std::str::FromStr;
 use base64::{engine::general_purpose, Engine as _};
 use c2g::app::Chess2Gif;
 use c2g::config::{Config, Output};
-use gloo_file::File;
 use gloo_console::debug;
 use web_sys::{HtmlInputElement, HtmlTextAreaElement};
 use yew::events::InputEvent;
@@ -168,22 +167,37 @@ fn pgn_input(props: &PgnInputProps) -> Html {
     }
 }
 
-async fn read_as_text(file: &File) -> String {
-    let reader = gloo_file::futures::read_as_text(file);
-
-    reader.await.unwrap()
+#[derive(Properties, PartialEq)]
+pub struct ConfigFromProps {
+    pub dark_color: UseStateHandle<String>,
+    pub light_color: UseStateHandle<String>,
 }
 
-#[function_component(App)]
-fn app() -> Html {
-    let chess_pgn = use_state_eq(|| String::new());
-    let generated_gif = use_state(|| String::new());
-    let dark_color = use_state_eq(|| "#769656".to_string());
-    let light_color = use_state_eq(|| "#eeeed2".to_string());
+#[function_component(ConfigForm)]
+fn config_form(props: &ConfigFromProps) -> Html {
+    let update_dark_color = {
+        let dark_color = props.dark_color.clone();
+
+            Callback::from(move |e: InputEvent| {
+                let input: HtmlInputElement = e.target_unchecked_into();
+
+                dark_color.set(input.value())
+            })
+    };
+
+    let update_light_color = {
+        let light_color = props.light_color.clone();
+
+        Callback::from(move |e: InputEvent| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+
+            light_color.set(input.value())
+        })
+    };
 
     let update_color_from_theme = {
-        let dark_color = dark_color.clone();
-        let light_color = light_color.clone();
+        let dark_color = props.dark_color.clone();
+        let light_color = props.light_color.clone();
 
         Callback::from(move |e: InputEvent| {
             let input: HtmlInputElement = e.target_unchecked_into();
@@ -195,25 +209,45 @@ fn app() -> Html {
         })
     };
 
-    let update_dark_color = {
-        let dark_color = dark_color.clone();
+    html! {
+        <form id="config-form" class="config-form">
+            <fieldset>
+            <legend>{ "Board colors" }</legend>
 
-        Callback::from(move |e: InputEvent| {
-            let input: HtmlInputElement = e.target_unchecked_into();
+            <div id="colors-grid" class="colors-grid">
+                <div id="color-pickers" class="color-pickers">
+                    <label for="dark-color-picker">{ "Choose a dark color:" }</label>
+                    <input type="color" id="dark-color-picker" name="color-picker" value={ props.dark_color.to_string() } oninput={ update_dark_color } />
 
-            dark_color.set(input.value())
-        })
-    };
+                    <h3 id="colors-and">{ "AND" } </h3>
 
-    let update_light_color = {
-        let light_color = light_color.clone();
+                    <label for="light-color-picker">{ "Choose a light color:" }</label>
+                    <input type="color" id="light-color-picker" name="color-picker" value={ props.light_color.to_string() } oninput={ update_light_color } />
+                </div>
 
-        Callback::from(move |e: InputEvent| {
-            let input: HtmlInputElement = e.target_unchecked_into();
+                    <h3 id="colors-or" class="colors-or">{ "OR" } </h3>
 
-            light_color.set(input.value())
-        })
-    };
+                <div id="theme-picker" class="theme-picker">
+                    <label for="theme-dropdown">{ "Set colors according to a theme: "}</label>
+                    <select name="theme-dropdown" id="theme-dropdown" oninput={ update_color_from_theme }>
+                        <option value="blue">{ "Blue" }</option>
+                        <option value="green" selected=true>{ "Green" }</option>
+                        <option value="gruvbox">{ "Gruvbox" }</option>
+                        <option value="nord">{ "Nord" }</option>
+                    </select>
+                </div>
+            </div>
+            </fieldset>
+        </form>
+    }
+}
+
+#[function_component(App)]
+fn app() -> Html {
+    let chess_pgn = use_state_eq(|| String::new());
+    let generated_gif = use_state(|| String::new());
+    let dark_color = use_state_eq(|| "#769656".to_string());
+    let light_color = use_state_eq(|| "#eeeed2".to_string());
 
     let generate_gif_onclick = {
         let generated_gif = generated_gif.clone();
@@ -232,39 +266,11 @@ fn app() -> Html {
             <h1>{ "Chess 2 GIF" }</h1>
         </header>
 
-            <main>
+        <main>
 
             <PgnInput chess_pgn={ chess_pgn.clone() } />
+            <ConfigForm dark_color={ dark_color.clone() } light_color={ light_color.clone() } />
 
-            <form id="config-form" class="config-form">
-                <fieldset>
-                <legend>{ "Board colors" }</legend>
-
-                <div id="colors-grid" class="colors-grid">
-                    <div id="color-pickers" class="color-pickers">
-                        <label for="dark-color-picker">{ "Choose a dark color:" }</label>
-                        <input type="color" id="dark-color-picker" name="color-picker" value={ dark_color.to_string() } oninput={ update_dark_color } />
-
-                        <h3 id="colors-and">{ "AND" } </h3>
-
-                        <label for="light-color-picker">{ "Choose a light color:" }</label>
-                        <input type="color" id="light-color-picker" name="color-picker" value={ light_color.to_string() } oninput={ update_light_color } />
-                   </div>
-
-                   <h3 id="colors-or" class="colors-or">{ "OR" } </h3>
-
-                   <div id="theme-picker" class="theme-picker">
-                        <label for="theme-dropdown">{ "Set colors according to a theme: "}</label>
-                        <select name="theme-dropdown" id="theme-dropdown" oninput={ update_color_from_theme }>
-                            <option value="blue">{ "Blue" }</option>
-                            <option value="green" selected=true>{ "Green" }</option>
-                            <option value="gruvbox">{ "Gruvbox" }</option>
-                            <option value="nord">{ "Nord" }</option>
-                        </select>
-                   </div>
-                </div>
-                </fieldset>
-            </form>
             if !chess_pgn.is_empty() {
                 <button id="generate-gif-button" value="Generate GIF" onclick={ generate_gif_onclick }> { "Generate GIF" } </button>
             }
