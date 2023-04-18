@@ -1,0 +1,29 @@
+name: CD
+
+on:
+  workflow_run:
+    branches: [master]
+    workflows: [CI]
+    types: [completed]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: wasm32-unknown-unknown
+
+      - uses: jetli/trunk-action@v0.4
+      - uses: jetli/wasm-bindgen-action@v0.2
+
+      - uses: actions/checkout@v3
+
+      - run: trunk build --release
+
+      - uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/master'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
