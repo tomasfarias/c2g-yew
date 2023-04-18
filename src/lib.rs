@@ -5,17 +5,15 @@ use std::str::FromStr;
 
 use base64::{engine::general_purpose, Engine as _};
 use gloo_console::debug;
-use web_sys::{HtmlInputElement, HtmlTextAreaElement, HtmlImageElement};
-use yew::events::InputEvent;
-use yew::functional::{use_state, use_state_eq, use_node_ref};
-use yew::html::TargetCast;
-use yew::{
-    function_component, html, Callback, Html, Properties, UseStateHandle
-};
-use yew_agent::{use_bridge, UseBridgeHandle};
 use wasm_bindgen_futures::spawn_local;
+use web_sys::{HtmlImageElement, HtmlInputElement, HtmlTextAreaElement};
+use yew::events::InputEvent;
+use yew::functional::{use_node_ref, use_state, use_state_eq};
+use yew::html::TargetCast;
+use yew::{function_component, html, Callback, Html, Properties, UseStateHandle};
+use yew_agent::{use_bridge, UseBridgeHandle};
 
-use crate::agent::{C2GWorker, C2GOutput, C2GInput};
+use crate::agent::{C2GInput, C2GOutput, C2GWorker};
 
 #[derive(Debug, Clone)]
 struct ParseThemeError;
@@ -163,11 +161,11 @@ fn config_form(props: &ConfigFormProps) -> Html {
     let update_dark_color = {
         let dark_color = props.dark_color.clone();
 
-            Callback::from(move |e: InputEvent| {
-                let input: HtmlInputElement = e.target_unchecked_into();
+        Callback::from(move |e: InputEvent| {
+            let input: HtmlInputElement = e.target_unchecked_into();
 
-                dark_color.set(input.value())
-            })
+            dark_color.set(input.value())
+        })
     };
 
     let update_light_color = {
@@ -265,11 +263,11 @@ fn gif_output(props: &GIFOutputProps) -> Html {
     let pgn_error_bridge = pgn_error.clone();
     let img_node_ref_bridge = img_node_ref.clone();
 
-    let worker_bridge: UseBridgeHandle<C2GWorker> = use_bridge(move |response: C2GOutput| {
-        match response {
+    let worker_bridge: UseBridgeHandle<C2GWorker> =
+        use_bridge(move |response: C2GOutput| match response {
             C2GOutput::Error(e) => {
                 pgn_error_bridge.set(e);
-            },
+            }
             C2GOutput::GIFBytes(bytes) => {
                 let data_url = format!(
                     "data:image/gif;base64,{}",
@@ -284,8 +282,7 @@ fn gif_output(props: &GIFOutputProps) -> Html {
                 img.set_alt("Rendered GIF");
                 img.set_hidden(false);
             }
-        }
-    });
+        });
 
     let generate_gif_onclick = {
         let worker_bridge = worker_bridge.clone();
