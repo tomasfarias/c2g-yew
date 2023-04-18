@@ -141,8 +141,8 @@ checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
 name = "c2g"
-version = "0.8.0"
-source = "git+https://github.com/tomasfarias/c2g.git#118e5f71fe70dd21b6fea2887cbcb6cd5d8a4a5b"
+version = "0.8.1"
+source = "git+https://github.com/tomasfarias/c2g.git#5c651c3f8bcd8b75e3244126bb03e5417c28db91"
 dependencies = [
  "clap",
  "env_logger",
@@ -157,6 +157,22 @@ dependencies = [
  "thiserror",
  "tiny-skia",
  "usvg",
+]
+
+[[package]]
+name = "c2g-yew"
+version = "0.1.0"
+dependencies = [
+ "base64 0.21.0",
+ "c2g",
+ "futures",
+ "gloo-console",
+ "gloo-file",
+ "serde",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "yew",
+ "yew-agent",
 ]
 
 [[package]]
@@ -507,7 +523,7 @@ dependencies = [
  "gloo-storage",
  "gloo-timers",
  "gloo-utils",
- "gloo-worker",
+ "gloo-worker 0.2.1",
 ]
 
 [[package]]
@@ -636,6 +652,23 @@ dependencies = [
  "js-sys",
  "serde",
  "serde_json",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
+name = "gloo-worker"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09110b5555bcafe508cee0fb94308af9aac7a85f980d3c88b270d117c6c6911d"
+dependencies = [
+ "anymap2",
+ "bincode",
+ "gloo-console",
+ "gloo-utils",
+ "js-sys",
+ "serde",
+ "slab",
  "wasm-bindgen",
  "web-sys",
 ]
@@ -1814,33 +1847,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "yew-app"
-version = "0.1.0"
-dependencies = [
- "base64 0.21.0",
- "c2g",
- "futures",
- "gloo-console",
- "gloo-file",
- "wasm-bindgen-futures",
- "web-sys",
- "yew",
- "yew-hooks",
-]
-
-[[package]]
-name = "yew-hooks"
+name = "yew-agent"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "268e2367720311f19582235f5c021702d6be8ded13b7ee8dcacc71019d055d15"
+checksum = "b06f7c5ed97fff22816bb00d3d82ebc0fc1119d7bbb9e07e62c0d2853f51920a"
 dependencies = [
- "gloo",
- "js-sys",
- "log",
- "serde",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
+ "gloo-worker 0.1.2",
  "yew",
 ]
 

@@ -1,19 +1,21 @@
-use std::error::Error;
+pub mod agent;
+
 use std::fmt;
 use std::str::FromStr;
 
 use base64::{engine::general_purpose, Engine as _};
-use c2g::app::Chess2Gif;
-use c2g::config::{Config, Output};
 use gloo_console::debug;
-use web_sys::{HtmlInputElement, HtmlTextAreaElement};
+use web_sys::{HtmlInputElement, HtmlTextAreaElement, HtmlImageElement};
 use yew::events::InputEvent;
 use yew::functional::{use_state, use_state_eq, use_node_ref};
 use yew::html::TargetCast;
 use yew::{
-    function_component, html, Callback, Html, HtmlResult, Properties, Renderer, UseStateHandle, Suspense
+    function_component, html, Callback, Html, Properties, UseStateHandle
 };
+use yew_agent::{use_bridge, UseBridgeHandle};
 use wasm_bindgen_futures::spawn_local;
+
+use crate::agent::{C2GWorker, C2GOutput, C2GInput};
 
 #[derive(Debug, Clone)]
 struct ParseThemeError;
@@ -21,21 +23,6 @@ struct ParseThemeError;
 impl fmt::Display for ParseThemeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "invalid theme")
-    }
-}
-
-#[derive(Debug, Clone)]
-enum InputError {
-    FailedToUploadPgnFile(String),
-}
-
-impl fmt::Display for InputError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            InputError::FailedToUploadPgnFile(pgn_file) => {
-                write!(f, "failed to upload file {}, try again", pgn_file)
-            }
-        }
     }
 }
 
@@ -115,7 +102,6 @@ fn pgn_input(props: &PgnInputProps) -> Html {
                 }
             };
 
-            let pgn_error = pgn_error.clone();
             let chess_pgn_setter = chess_pgn.setter();
             let textarea = textarea_ref
                 .cast::<HtmlTextAreaElement>()
@@ -167,13 +153,13 @@ fn pgn_input(props: &PgnInputProps) -> Html {
 }
 
 #[derive(Properties, PartialEq)]
-pub struct ConfigFromProps {
+pub struct ConfigFormProps {
     pub dark_color: UseStateHandle<String>,
     pub light_color: UseStateHandle<String>,
 }
 
 #[function_component(ConfigForm)]
-fn config_form(props: &ConfigFromProps) -> Html {
+fn config_form(props: &ConfigFormProps) -> Html {
     let update_dark_color = {
         let dark_color = props.dark_color.clone();
 
@@ -242,22 +228,10 @@ fn config_form(props: &ConfigFromProps) -> Html {
 }
 
 #[function_component(App)]
-fn app() -> Html {
+pub fn app() -> Html {
     let chess_pgn = use_state_eq(|| String::new());
-    let generated_gif = use_state(|| String::new());
     let dark_color = use_state_eq(|| "#769656".to_string());
     let light_color = use_state_eq(|| "#eeeed2".to_string());
-
-    let generate_gif_onclick = {
-        let generated_gif = generated_gif.clone();
-        let chess_pgn = chess_pgn.clone();
-
-        Callback::from(move |_| {
-            if let Ok(gif) = generate_gif(chess_pgn.to_string()) {
-                generated_gif.set(gif)
-            }
-        })
-    };
 
     html! {
         <>
@@ -270,33 +244,82 @@ fn app() -> Html {
             <PgnInput chess_pgn={ chess_pgn.clone() } />
             <ConfigForm dark_color={ dark_color.clone() } light_color={ light_color.clone() } />
 
-            <div id="output" class="output">
-                if !chess_pgn.is_empty() {
-                    <button id="generate-gif-button" value="Generate GIF!" onclick={ generate_gif_onclick }> { "Generate GIF!" } </button>
-                } else {
-                    <button disabled=true id="generate-gif-button" value="Input PGN to Generate GIF" onclick={ generate_gif_onclick }> { "Input PGN to Generate GIF" } </button>
-                }
-            </div>
+            <GifOutput chess_pgn={ chess_pgn.clone() } dark_color={ dark_color.clone() } light_color={ light_color.clone() } />
         </main>
         </>
     }
 }
 
-fn generate_gif(chess_pgn: String) -> Result<String, Box<dyn Error>> {
-    let config = Config {
-        output: Output::Buffer,
-        ..Config::default()
-    };
-
-    let chess2gif = Chess2Gif::new(chess_pgn, config)?;
-    let gif_bytes = chess2gif.run()?;
-    let data_url = format!(
-        "data:image/gif;base64,{}",
-        general_purpose::STANDARD_NO_PAD.encode(&gif_bytes.unwrap())
-    );
-    Ok(data_url)
+#[derive(Properties, PartialEq)]
+pub struct GIFOutputProps {
+    pub chess_pgn: UseStateHandle<String>,
+    pub dark_color: UseStateHandle<String>,
+    pub light_color: UseStateHandle<String>,
 }
 
-fn main() {
-    Renderer::<App>::new().render();
+#[function_component(GifOutput)]
+fn gif_output(props: &GIFOutputProps) -> Html {
+    let pgn_error = use_state(|| String::new());
+    let img_node_ref = use_node_ref();
+
+    let pgn_error_bridge = pgn_error.clone();
+    let img_node_ref_bridge = img_node_ref.clone();
+
+    let worker_bridge: UseBridgeHandle<C2GWorker> = use_bridge(move |response: C2GOutput| {
+        match response {
+            C2GOutput::Error(e) => {
+                pgn_error_bridge.set(e);
+            },
+            C2GOutput::GIFBytes(bytes) => {
+                let data_url = format!(
+                    "data:image/gif;base64,{}",
+                    general_purpose::STANDARD_NO_PAD.encode(&bytes)
+                );
+
+                let img = img_node_ref_bridge
+                    .cast::<HtmlImageElement>()
+                    .expect("img_node_ref not attached to img element");
+
+                img.set_src(&data_url);
+                img.set_alt("Rendered GIF");
+                img.set_hidden(false);
+            }
+        }
+    });
+
+    let generate_gif_onclick = {
+        let worker_bridge = worker_bridge.clone();
+        let chess_pgn = props.chess_pgn.clone();
+        let dark_color = props.dark_color.clone();
+        let light_color = props.light_color.clone();
+
+        Callback::from(move |_| {
+            let input = C2GInput {
+                chess_pgn: (*chess_pgn).to_owned(),
+                dark_color: (*dark_color).to_owned(),
+                light_color: (*light_color).to_owned(),
+            };
+
+            worker_bridge.send(input);
+        })
+    };
+
+    html! {
+        <>
+        <div id="generate-button" class="generate-button">
+            if !props.chess_pgn.is_empty() {
+                <button id="generate-gif-button" value="Generate GIF!" onclick={ generate_gif_onclick }> { "Generate GIF!" } </button>
+            } else {
+                <button disabled=true id="generate-gif-button" value="Input PGN to Generate GIF" onclick={ generate_gif_onclick }> { "Input PGN to Generate GIF" } </button>
+            }
+        </div>
+        <div id="gif-output" class="gif-output">
+            if !pgn_error.is_empty() {
+                <h3>{ format!("Failed to render GIF: {}", *pgn_error) }</h3>
+            }
+
+            <img class="chess-gif" ref={ img_node_ref } hidden=true alt="No GIF rendered" />
+        </div>
+        </>
+    }
 }

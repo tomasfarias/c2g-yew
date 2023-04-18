@@ -19,9 +19,20 @@ body {
     font-size: 16px;
 }
 
-.output {
+.generate-button {
     display: flex;
     justify-content: center;
+}
+
+.gif-output {
+    display: flex;
+    justify-content: center;
+}
+
+.chess-gif {
+    border: 1px solid var(--border-color);
+    border-radius: .25rem;
+    margin-top: 2rem;
 }
 
 #generate-gif-button {
