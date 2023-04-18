@@ -71,6 +71,7 @@ pub struct PgnInputProps {
     pub chess_pgn: UseStateHandle<String>,
 }
 
+#[allow(clippy::redundant_closure)]
 #[function_component(PgnInput)]
 fn pgn_input(props: &PgnInputProps) -> Html {
     let pgn_error = use_state_eq(|| String::new());
@@ -225,6 +226,7 @@ fn config_form(props: &ConfigFormProps) -> Html {
     }
 }
 
+#[allow(clippy::redundant_closure)]
 #[function_component(App)]
 pub fn app() -> Html {
     let chess_pgn = use_state_eq(|| String::new());
@@ -255,6 +257,7 @@ pub struct GIFOutputProps {
     pub light_color: UseStateHandle<String>,
 }
 
+#[allow(clippy::redundant_closure)]
 #[function_component(GifOutput)]
 fn gif_output(props: &GIFOutputProps) -> Html {
     let pgn_error = use_state(|| String::new());
@@ -271,7 +274,7 @@ fn gif_output(props: &GIFOutputProps) -> Html {
             C2GOutput::GIFBytes(bytes) => {
                 let data_url = format!(
                     "data:image/gif;base64,{}",
-                    general_purpose::STANDARD_NO_PAD.encode(&bytes)
+                    general_purpose::STANDARD_NO_PAD.encode(bytes)
                 );
 
                 let img = img_node_ref_bridge
@@ -285,7 +288,6 @@ fn gif_output(props: &GIFOutputProps) -> Html {
         });
 
     let generate_gif_onclick = {
-        let worker_bridge = worker_bridge.clone();
         let chess_pgn = props.chess_pgn.clone();
         let dark_color = props.dark_color.clone();
         let light_color = props.light_color.clone();
