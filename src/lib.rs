@@ -257,6 +257,7 @@ pub struct GIFOutputProps {
     pub light_color: UseStateHandle<String>,
 }
 
+/// GIFOutput component in charge of generate button and the actual GIF.
 #[allow(clippy::redundant_closure)]
 #[function_component(GifOutput)]
 fn gif_output(props: &GIFOutputProps) -> Html {
