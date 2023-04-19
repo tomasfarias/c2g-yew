@@ -8,6 +8,7 @@ pub struct C2GWorker {
     link: WorkerLink<Self>,
 }
 
+/// The output of running c2g should be either an error or bytes of a gif.
 #[derive(Serialize, Deserialize)]
 pub enum C2GOutput {
     GIFBytes(Vec<u8>),
